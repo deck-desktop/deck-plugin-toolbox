@@ -1,0 +1,8 @@
+{
+  "id": "toolbox",
+  "name": "Toolbox",
+  "description": "Developer conversions in one place: JSON (YAML, CSV, TypeScript and Dart models), JWT, Base64, URL, timestamps and timezones, UUID and ULID, hashes, regex, cron, case, diff, color, Unicode, passwords, number bases and HTTP status. Paste anything and the right tool opens.",
+  "icon": "Wrench",
+  "version": "1.0.0",
+  "minDeck": "0.22.0"
+}
