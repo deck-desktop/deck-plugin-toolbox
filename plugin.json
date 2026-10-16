@@ -4,6 +4,6 @@
   "description": "Developer conversions in one place: JSON (YAML, CSV, TypeScript and Dart models), JWT, Base64, URL, timestamps and timezones, UUID and ULID, hashes, regex, cron, case, diff, color, Unicode, passwords, number bases and HTTP status. Paste anything and the right tool opens.",
   "icon": "Wrench",
   "color": "#d4d4d8",
-  "version": "1.0.1",
-  "minDeck": "0.22.0"
+  "version": "1.0.2",
+  "minDeck": "1.5.0"
 }
