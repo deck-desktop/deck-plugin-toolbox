@@ -66,8 +66,8 @@ function Home({ focus }: { focus: boolean }) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <div className="mb-1 flex items-center gap-2 text-[13px] text-text-secondary">
-          <ClipboardPaste size={15} style={{ color: "var(--accent)" }} /> Paste anything: a JWT, JSON, a timestamp, a URL, a color, a cron line…
+        <div className="mb-1.5 flex items-center gap-2 text-[12.5px] text-text-secondary">
+          <ClipboardPaste size={14} className="shrink-0 text-text-muted" /> Paste anything: a JWT, JSON, a timestamp, a URL, a color, a cron line…
         </div>
         <Area value={text} autoFocus={focus} rows={5} placeholder="Paste here and the right tool opens"
           onChange={(v) => { if (route(v)) setHome(""); else setHome(v); }} />
@@ -76,11 +76,11 @@ function Home({ focus }: { focus: boolean }) {
       <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
         {TOOLS.map((t) => (
           <button key={t.id} onClick={() => setCurrent(t.id)}
-            className="flex items-start gap-2 rounded-lg border border-subtle bg-card p-3 text-left transition hover:border-accent">
-            <span className="mt-0.5 text-accent"><t.icon size={16} /></span>
+            className="group flex items-start gap-2.5 rounded-lg border border-subtle bg-elev p-3 text-left transition-colors hover:border-strong">
+            <span className="mt-0.5 text-text-muted transition-colors group-hover:text-text-primary"><t.icon size={15} /></span>
             <span>
-              <span className="block text-[13px] font-semibold text-text-primary">{t.name}</span>
-              <span className="mt-0.5 block text-[12px] leading-snug text-text-secondary">{t.blurb}</span>
+              <span className="block text-[12.5px] font-medium text-text-primary">{t.name}</span>
+              <span className="mt-0.5 block text-[11.5px] leading-snug text-text-muted">{t.blurb}</span>
             </span>
           </button>
         ))}
@@ -94,16 +94,18 @@ function Toolbox({ pane = false }: { pane?: boolean }) {
   const tool = TOOLS.find((t) => t.id === current);
   const item = (id: ToolId | null, label: string, Icon: Tool["icon"]) => (
     <button key={id ?? "home"} onClick={() => setCurrent(id)} title={label}
-      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] transition ${current === id ? "bg-white/5 text-text-primary" : "text-text-secondary hover:bg-white/5 hover:text-text-primary"}`}>
-      <span style={current === id ? { color: "var(--accent)" } : undefined}><Icon size={14} /></span>
+      // The open tool lit in the accent's soft fill, as the Editor's tree marks the open file.
+      className={`flex h-6 w-full shrink-0 items-center gap-2 rounded-md px-2 text-left text-[12.5px] transition-colors ${current === id ? "text-text-primary" : "text-text-secondary hover:bg-white/5 hover:text-text-primary"}`}
+      style={current === id ? { background: "var(--accent-soft)" } : undefined}>
+      <span className={current === id ? "text-text-primary" : "text-text-muted"}><Icon size={14} /></span>
       <span className="truncate">{label}</span>
     </button>
   );
   return (
     <div className="flex h-full min-h-0 bg-app">
-      <nav className="flex w-40 shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-subtle p-2">
+      <nav className="scroll-thin flex w-40 shrink-0 flex-col gap-px overflow-y-auto border-r border-subtle bg-panel p-1.5">
         {item(null, "Paste anything", Wrench)}
-        <div className="my-1 border-t border-subtle" />
+        <div className="h-2 shrink-0" />
         {TOOLS.map((t) => item(t.id, t.name, t.icon))}
       </nav>
       <main className="min-w-0 flex-1 overflow-y-auto p-4">
