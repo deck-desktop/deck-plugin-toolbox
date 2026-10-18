@@ -5,7 +5,7 @@ import { Plus, X } from "lucide-react";
 import { monaco } from "../shim/monaco.js";
 import { Select } from "../shim/ui.js";
 import { useTool } from "./store";
-import { Area, Check, CopyButton, Err, Label, Line, Out, Pills, attempt } from "./parts";
+import { Area, Check, Chip, CopyButton, Err, LIST, Label, Line, NUMBER, Out, PRIMARY, Pills, ROW, SECONDARY, attempt } from "./parts";
 import { decodeBase64, encodeBase64 } from "./tools/codec";
 import { formatJson, fromCsv, fromYaml, minifyJson, parseJson, toCsv, toYaml } from "./tools/json";
 import { toDart, toTypeScript } from "./tools/types";
@@ -84,14 +84,12 @@ export function JwtTool() {
       {out?.ok && (
         <>
           {out.value.times.length > 0 && (
-            <div className="rounded-md border border-subtle p-2 text-[12px]">
+            <div className="rounded-lg border border-subtle px-2.5 py-2 text-[12px]">
               {out.value.expired !== null && (
-                <div className="mb-1 font-semibold" style={{ color: out.value.expired ? "var(--danger)" : "var(--ok)" }}>
-                  {out.value.expired ? "Expired" : "Not expired"}
-                </div>
+                <div className="mb-1.5"><Chip color={out.value.expired ? "red" : "green"}>{out.value.expired ? "Expired" : "Not expired"}</Chip></div>
               )}
               {out.value.times.map((t) => (
-                <div key={t.claim} className="flex gap-2 text-text-secondary">
+                <div key={t.claim} className="flex h-6 items-center gap-2 text-text-secondary">
                   <span className="w-20 font-mono text-text-muted">{t.claim}</span>
                   <span>{t.date.toLocaleString()}</span><span className="text-text-muted">({relative(t.date.getTime())})</span>
                 </div>
@@ -124,7 +122,7 @@ export function Base64Tool() {
       <Area value={s.input} onChange={(input) => set({ input })} placeholder={s.mode === "encode" ? "Text to encode" : "Base64 to decode (either alphabet)"} />
       {out && (out.ok ? <Out label="Result" value={out.value} rows={8} /> : <Err>{out.error}</Err>)}
       <div><button onClick={() => out?.ok && set({ input: out.value, mode: s.mode === "encode" ? "decode" : "encode" })}
-        className="text-[12px] text-text-muted hover:text-text-primary" disabled={!out?.ok}>⇅ Use the result as input</button></div>
+        className={SECONDARY} disabled={!out?.ok}>⇅ Use the result as input</button></div>
     </Stack>
   );
 }
@@ -163,12 +161,12 @@ export function UrlTool() {
 
 export function Table({ rows, mono }: { rows: [string, string][]; mono?: boolean }) {
   return (
-    <div className="divide-y divide-subtle rounded-md border border-subtle text-[12px]">
+    <div className={LIST}>
       {rows.map(([k, v], i) => (
-        <div key={i} className="flex items-center gap-2 px-2 py-1">
+        <div key={i} className={ROW}>
           <span className={`w-28 shrink-0 text-text-muted ${mono ? "font-mono" : ""}`}>{k}</span>
           <span className="min-w-0 flex-1 break-all font-mono text-text-primary">{v}</span>
-          <CopyButton text={v} />
+          <CopyButton text={v} hover />
         </div>
       ))}
     </div>
@@ -186,7 +184,7 @@ export function TimeTool() {
     <Stack>
       <Bar>
         <Line value={s.input} onChange={(input) => set({ input })} placeholder="1700000000, 1700000000000, 2026-10-11 14:30, or an ISO date (empty = now)" className="min-w-0 flex-1" />
-        <button onClick={() => set({ input: String(Math.floor(Date.now() / 1000)) })} className="text-[12px] text-text-muted hover:text-text-primary">Now</button>
+        <button onClick={() => set({ input: String(Math.floor(Date.now() / 1000)) })} className={SECONDARY}>Now</button>
       </Bar>
       <Bar>
         <span className="text-[12px] text-text-secondary">A date with no zone is in</span>
@@ -208,22 +206,23 @@ export function TimeTool() {
             [`Here (${local})`, formatIn(parsed.ms, local)],
           ]} />
           <Label>Other zones</Label>
-          <div className="divide-y divide-subtle rounded-md border border-subtle text-[12px]">
+          <div className={LIST}>
             {s.zones.map((z) => (
-              <div key={z} className="flex items-center gap-2 px-2 py-1">
+              <div key={z} className={ROW}>
                 <span className="w-44 shrink-0 truncate text-text-muted">{z}</span>
                 <span className="min-w-0 flex-1 font-mono text-text-primary">{formatIn(parsed.ms, z)}</span>
-                <CopyButton text={formatIn(parsed.ms, z)} />
-                <button onClick={() => set({ zones: s.zones.filter((x) => x !== z) })} title="Remove" className="rounded p-1 text-text-muted hover:text-text-primary"><X size={13} /></button>
+                <CopyButton text={formatIn(parsed.ms, z)} hover />
+                <button onClick={() => set({ zones: s.zones.filter((x) => x !== z) })} title="Remove"
+                  className="grid size-6 shrink-0 place-items-center rounded text-text-muted opacity-0 transition-colors hover:bg-white/10 hover:text-red-400 focus:opacity-100 group-hover:opacity-100"><X size={13} /></button>
               </div>
             ))}
-            <div className="flex items-center gap-2 px-2 py-1">
+            <div className="flex items-center gap-2 px-1 pt-1">
               <div className="min-w-0 flex-1"><Select value={s.add} onChange={(e) => set({ add: e.target.value })}>
                 <option value="">Add a zone…</option>
                 {zones.filter((z) => !s.zones.includes(z)).map((z) => <option key={z} value={z}>{z}</option>)}
               </Select></div>
               <button disabled={!s.add} onClick={() => set({ zones: [...s.zones, s.add], add: "" })} title="Add"
-                className="rounded p-1 text-text-muted hover:text-text-primary disabled:opacity-40"><Plus size={14} /></button>
+                className="grid size-7 shrink-0 place-items-center rounded-lg text-text-muted transition-colors hover:bg-white/5 hover:text-text-primary disabled:opacity-40"><Plus size={14} /></button>
             </div>
           </div>
         </>
@@ -252,10 +251,10 @@ export function IdsTool() {
         <Pills value={s.kind} onChange={(kind) => generate(kind)} options={[["v4", "UUID v4"], ["v7", "UUID v7 (sortable)"], ["ulid", "ULID"]]} />
         <label className="flex items-center gap-1.5 text-[12px] text-text-secondary">
           Count <input type="number" min={1} max={1000} value={s.count} onChange={(e) => set({ count: e.target.value })}
-            className="h-7 w-16 rounded-md border border-strong bg-elev px-2 text-[12px] text-text-primary outline-none focus:border-accent" />
+            className={NUMBER} />
         </label>
         <Check on={s.upper} onChange={(upper) => generate(s.kind, s.count, upper)}>Uppercase</Check>
-        <button onClick={() => generate()} className="rounded-md border border-subtle px-2.5 py-1 text-[12px] text-text-secondary hover:text-text-primary">Generate</button>
+        <button onClick={() => generate()} className={PRIMARY} style={{ background: "var(--accent)" }}>Generate</button>
       </Bar>
       <Out value={s.out} rows={Math.min(14, s.out.split("\n").length + 1)} />
       <Label>Inspect an id</Label>
@@ -285,7 +284,7 @@ export function HashTool() {
   return (
     <Stack>
       <Bar>
-        <label className="cursor-pointer rounded-md border border-subtle px-2.5 py-1 text-[12px] text-text-secondary hover:text-text-primary">
+        <label className={SECONDARY}>
           Hash a file…
           <input type="file" className="hidden" onChange={(e) => {
             const f = e.target.files?.[0];
@@ -294,7 +293,7 @@ export function HashTool() {
           }} />
         </label>
         {file && <span className="text-[12px] text-text-secondary">{file.name} ({file.bytes.byteLength.toLocaleString()} bytes)
-          <button onClick={() => setFile(null)} className="ml-2 text-text-muted hover:text-text-primary">back to text</button></span>}
+          <button onClick={() => setFile(null)} className="ml-2 rounded-md px-1.5 py-0.5 text-text-muted transition-colors hover:bg-white/5 hover:text-text-primary">Back to text</button></span>}
         <Check on={s.upper} onChange={(upper) => set({ upper })}>Uppercase</Check>
       </Bar>
       {!file && <Area value={s.input} onChange={(input) => set({ input })} placeholder="Text to hash (as UTF-8)" rows={6} />}
@@ -344,11 +343,11 @@ export function RegexTool() {
       {res?.ok && (
         <>
           <Label>{res.value.list.length >= MAX_MATCHES ? `First ${MAX_MATCHES} matches` : `${res.value.list.length} match${res.value.list.length === 1 ? "" : "es"}`}</Label>
-          <pre style={{ maxHeight: 240 }} className="overflow-auto whitespace-pre-wrap break-all rounded-md border border-subtle p-2 font-mono text-[12px] text-text-secondary">{marked}</pre>
+          <pre style={{ maxHeight: 240 }} className="overflow-auto whitespace-pre-wrap break-all rounded-lg border border-subtle px-2.5 py-2 font-mono text-[12px] text-text-secondary">{marked}</pre>
           {res.value.list.some((m) => m.groups.length) && (
-            <div style={{ maxHeight: 240 }} className="overflow-auto rounded-md border border-subtle text-[12px]">
+            <div style={{ maxHeight: 240 }} className={`overflow-auto ${LIST}`}>
               {res.value.list.slice(0, 200).map((m, i) => (
-                <div key={i} className="flex flex-wrap gap-x-3 border-b border-subtle px-2 py-1 font-mono last:border-0">
+                <div key={i} className={`${ROW} flex-wrap gap-x-3 font-mono`}>
                   <span className="text-text-muted">#{i + 1} @{m.index}</span>
                   {m.groups.map((g, j) => <span key={j}><span className="text-text-muted">{j + 1}:</span> <span className="text-text-primary">{g ?? "—"}</span></span>)}
                   {Object.entries(m.named).map(([k, g]) => <span key={k}><span className="text-text-muted">{k}:</span> <span className="text-text-primary">{g ?? "—"}</span></span>)}
@@ -382,9 +381,9 @@ export function CronTool() {
           <div className="text-[15px] text-text-primary">{res.value.text}</div>
           <Label>Next runs (this machine's time)</Label>
           {res.value.runs.length === 0 && <div className="text-[12px] text-text-muted">Never, in the next five years.</div>}
-          <div className="divide-y divide-subtle rounded-md border border-subtle text-[12px]">
+          <div className={LIST}>
             {res.value.runs.map((r) => (
-              <div key={r.getTime()} className="flex gap-3 px-2 py-1">
+              <div key={r.getTime()} className={`${ROW} gap-3`}>
                 <span className="font-mono text-text-primary">{r.toLocaleString(undefined, { weekday: "short", year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
                 <span className="text-text-muted">{relative(r.getTime())}</span>
               </div>
@@ -447,7 +446,7 @@ export function DiffTool() {
         <Check on={s.inline} onChange={(inline) => set({ inline })}>Inline</Check>
         <Check on={s.ignoreWs} onChange={(ignoreWs) => set({ ignoreWs })}>Ignore leading/trailing whitespace</Check>
       </Bar>
-      <div ref={host} style={{ minHeight: 300 }} className="flex-1 overflow-hidden rounded-md border border-subtle" />
+      <div ref={host} style={{ minHeight: 300 }} className="flex-1 overflow-hidden rounded-lg border border-subtle" />
     </div>
   );
 }
@@ -462,13 +461,13 @@ export function ColorTool() {
   return (
     <Stack>
       <Bar>
-        <input type="color" value={hex} onChange={(e) => set({ input: e.target.value })} className="h-8 w-10 cursor-pointer rounded border border-subtle bg-transparent" />
+        <input type="color" value={hex} onChange={(e) => set({ input: e.target.value })} className="h-8 w-10 cursor-pointer rounded-lg border border-subtle bg-elev" />
         <Line value={s.input} onChange={(input) => set({ input })} placeholder="#1e90ff, rgb(30 144 255), hsl(210 100% 56%), Color(0xFF1E90FF)" className="min-w-0 flex-1" />
       </Bar>
       {!c && s.input.trim() && <Err>Not a color Deck can read</Err>}
       {c && (
         <>
-          <div className="rounded-md border border-subtle" style={{ height: 64, background: formats(c)[1][1] }} />
+          <div className="rounded-lg border border-subtle" style={{ height: 64, background: formats(c)[1][1] }} />
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
             {formats(c).map(([label, v]) => <Out key={label} label={label} value={v} />)}
           </div>
@@ -491,12 +490,10 @@ export function ColorTool() {
 
 function Contrast({ label, fg, bg }: { label: string; fg: NonNullable<ReturnType<typeof parseColor>>; bg: NonNullable<ReturnType<typeof parseColor>> }) {
   const r = contrast(fg, bg), g = grades(r);
-  const tag = (ok: boolean, text: string) => (
-    <span className="rounded px-1.5 py-0.5 text-[11px]" style={{ color: ok ? "var(--ok)" : "var(--danger)", border: "1px solid currentColor" }}>{text}</span>
-  );
+  const tag = (ok: boolean, text: string) => <Chip color={ok ? "green" : "red"}>{text}</Chip>;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="rounded px-2 py-1 font-semibold" style={{ color: formats(fg)[1][1], background: formats(bg)[1][1] }}>Sample text</span>
+      <span className="rounded-md px-2 py-1 font-semibold" style={{ color: formats(fg)[1][1], background: formats(bg)[1][1] }}>Sample text</span>
       <span className="w-28 text-text-secondary">{label}</span>
       <span className="w-14 font-mono text-text-primary">{r.toFixed(2)}:1</span>
       {tag(g.aa, "AA")}{tag(g.aaa, "AAA")}{tag(g.aaLarge, "AA large")}{tag(g.aaaLarge, "AAA large")}
