@@ -2,14 +2,15 @@
 //
 // A tab, a pane view and palette entries, all showing the same tools with the same contents
 // (store.ts). The home screen takes a paste and opens the tool that fits it (tools/detect.ts).
-import { useState, type ComponentType } from "react";
+import type { ComponentType } from "react";
 import {
   Binary, Braces, Calculator, CalendarClock, CaseSensitive, ClipboardPaste, Clock, Dices, GitCompare, Globe, Hash, KeyRound, Link,
   LockKeyhole, Palette, Regex, ScanText, Wrench,
 } from "lucide-react";
 import { monaco } from "../shim/monaco.js";
-import { Field, Select, toast } from "../shim/ui.js";
-import { configRead, configWrite } from "../shim/bridge.js";
+import { toast } from "../shim/ui.js";
+import { configRead } from "../shim/bridge.js";
+import { listen } from "../shim/event.js";
 import { openWith, setCurrent, setHome, useCurrent, useHome } from "./store";
 import { detect, type ToolId } from "./tools/detect";
 import {
@@ -123,33 +124,28 @@ export default function Tab() { return <Toolbox />; }
 export const PaneView = () => <Toolbox pane />;
 
 /**
- * Where the Toolbox opens from the editor's menu and the palette (its Settings): a floating window,
- * so what you were working on stays in view, or a tab. Kept in the plugin's own settings file.
+ * Where the Toolbox opens from the editor's menu and the palette: a floating window, so what you
+ * were working on stays in view, or a tab. Declared rather than drawn: Deck shows it in Settings,
+ * Layout, Where things open, and keeps it in this plugin's own settings file, read here at start
+ * and again whenever it changes.
  */
+export const settings = [{
+  in: "where-things-open", key: "openIn", title: "Toolbox from the editor and the palette",
+  desc: "Open in Toolbox in the editor's menu, and the palette's Toolbox commands.",
+  choices: [["float", "Floating window"], ["tab", "Tab"]], default: "float",
+}];
 type OpenIn = "float" | "tab";
 let openIn: OpenIn = "float";
-void configRead("settings").then((t) => { if (t.trim()) openIn = JSON.parse(t).openIn === "tab" ? "tab" : "float"; })
+const readOpenIn = () => configRead("settings")
+  .then((t) => { openIn = t.trim() && JSON.parse(t).openIn === "tab" ? "tab" : "float"; })
   .catch((e) => console.warn("[toolbox] settings load failed", e));
+void readOpenIn();
+// The user changed it in Settings: config-changed names the file in full.
+const unlisten = listen<string[]>("config-changed", (e) => { if (e.payload.includes("data/toolbox/settings")) void readOpenIn(); });
 
 const show = () => window.dispatchEvent(openIn === "tab"
   ? new CustomEvent("deck-navigate", { detail: "toolbox" })
   : new CustomEvent("deck-open-float", { detail: { view: "toolbox", focus: true } }));
-
-export function Settings() {
-  const [value, setValue] = useState<OpenIn>(openIn);
-  const set = (v: OpenIn) => {
-    openIn = v; setValue(v);
-    void configWrite("settings", JSON.stringify({ openIn: v })).catch((e) => console.warn("[toolbox] settings save failed", e));
-  };
-  return (
-    <Field label="Open from the editor and the palette" hint="Open in Toolbox and the palette's Toolbox commands. A floating window keeps what you were working on in view.">
-      <Select className="w-64" value={value} onChange={(e) => set(e.target.value as OpenIn)}>
-        <option value="float">A floating window</option>
-        <option value="tab">A tab</option>
-      </Select>
-    </Field>
-  );
-}
 
 /** Open `text` in the tool that fits it, or on the home screen when none does. */
 function openText(text: string, from: string) {
@@ -192,7 +188,10 @@ const OPEN_SELECTION = {
 };
 const action = monaco.editor.addEditorAction(OPEN_SELECTION);
 
-export function dispose() { action.dispose(); }
+export function dispose() {
+  action.dispose();
+  void unlisten.then((f) => f());
+}
 
 /** "Toolbox: JSON" and the rest, plus the two that route the clipboard and the selection. */
 export function commands() {
