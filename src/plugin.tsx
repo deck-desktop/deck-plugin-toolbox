@@ -2,13 +2,14 @@
 //
 // A tab, a pane view and palette entries, all showing the same tools with the same contents
 // (store.ts). The home screen takes a paste and opens the tool that fits it (tools/detect.ts).
-import type { ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 import {
   Binary, Braces, Calculator, CalendarClock, CaseSensitive, ClipboardPaste, Clock, Dices, GitCompare, Globe, Hash, KeyRound, Link,
   LockKeyhole, Palette, Regex, ScanText, Wrench,
 } from "lucide-react";
 import { monaco } from "../shim/monaco.js";
-import { toast } from "../shim/ui.js";
+import { Field, Select, toast } from "../shim/ui.js";
+import { configRead, configWrite } from "../shim/bridge.js";
 import { openWith, setCurrent, setHome, useCurrent, useHome } from "./store";
 import { detect, type ToolId } from "./tools/detect";
 import {
@@ -121,7 +122,34 @@ export default function Tab() { return <Toolbox />; }
 // terminal beside it should keep the keyboard.
 export const PaneView = () => <Toolbox pane />;
 
-const show = () => window.dispatchEvent(new CustomEvent("deck-navigate", { detail: "toolbox" }));
+/**
+ * Where the Toolbox opens from the editor's menu and the palette (its Settings): a floating window,
+ * so what you were working on stays in view, or a tab. Kept in the plugin's own settings file.
+ */
+type OpenIn = "float" | "tab";
+let openIn: OpenIn = "float";
+void configRead("settings").then((t) => { if (t.trim()) openIn = JSON.parse(t).openIn === "tab" ? "tab" : "float"; })
+  .catch((e) => console.warn("[toolbox] settings load failed", e));
+
+const show = () => window.dispatchEvent(openIn === "tab"
+  ? new CustomEvent("deck-navigate", { detail: "toolbox" })
+  : new CustomEvent("deck-open-float", { detail: { view: "toolbox", focus: true } }));
+
+export function Settings() {
+  const [value, setValue] = useState<OpenIn>(openIn);
+  const set = (v: OpenIn) => {
+    openIn = v; setValue(v);
+    void configWrite("settings", JSON.stringify({ openIn: v })).catch((e) => console.warn("[toolbox] settings save failed", e));
+  };
+  return (
+    <Field label="Open from the editor and the palette" hint="Open in Toolbox and the palette's Toolbox commands. A floating window keeps what you were working on in view.">
+      <Select className="w-64" value={value} onChange={(e) => set(e.target.value as OpenIn)}>
+        <option value="float">A floating window</option>
+        <option value="tab">A tab</option>
+      </Select>
+    </Field>
+  );
+}
 
 /** Open `text` in the tool that fits it, or on the home screen when none does. */
 function openText(text: string, from: string) {
