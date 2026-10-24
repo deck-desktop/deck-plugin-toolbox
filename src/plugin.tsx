@@ -140,8 +140,8 @@ const readOpenIn = () => configRead("settings")
   .then((t) => { openIn = t.trim() && JSON.parse(t).openIn === "tab" ? "tab" : "float"; })
   .catch((e) => console.warn("[toolbox] settings load failed", e));
 void readOpenIn();
-// The user changed it in Settings: config-changed names the file in full.
-const unlisten = listen<string[]>("config-changed", (e) => { if (e.payload.includes("data/toolbox/settings")) void readOpenIn(); });
+// The user changed it in Settings: config-changed names this plugin's own configs as it names them.
+const unlisten = listen<string[]>("config-changed", (e) => { if (e.payload.includes("settings")) void readOpenIn(); });
 
 const show = () => window.dispatchEvent(openIn === "tab"
   ? new CustomEvent("deck-navigate", { detail: "toolbox" })
