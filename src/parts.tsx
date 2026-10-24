@@ -1,7 +1,7 @@
 // The few pieces every tool is made of: an input box, an output with a copy button, an error.
 import type { ReactNode } from "react";
 import { Copy } from "lucide-react";
-import { toast } from "../shim/ui.js";
+import { notice, failure } from "./notice";
 
 /** A field on the elevated surface, lit in the accent while typing in it. */
 const BOX = "rounded-lg border border-subtle bg-elev font-mono text-[12px] text-text-primary outline-none transition-colors focus:border-[var(--accent)]";
@@ -34,8 +34,8 @@ export const NUMBER = "h-8 w-16 rounded-lg border border-subtle bg-elev px-2.5 t
 
 export function copy(text: string) {
   void navigator.clipboard.writeText(text).then(
-    () => toast("Copied", "success"),
-    () => toast("Could not copy to the clipboard", "error"),
+    () => notice("Copied"),
+    () => failure("Could not copy to the clipboard"),
   );
 }
 
