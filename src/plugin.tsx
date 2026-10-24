@@ -8,7 +8,7 @@ import {
   LockKeyhole, Palette, Regex, ScanText, Wrench,
 } from "lucide-react";
 import { monaco } from "../shim/monaco.js";
-import { toast } from "../shim/ui.js";
+import { notice, failure } from "./notice";
 import { configRead } from "../shim/bridge.js";
 import { listen } from "../shim/event.js";
 import { openWith, setCurrent, setHome, useCurrent, useHome } from "./store";
@@ -149,9 +149,9 @@ const show = () => window.dispatchEvent(openIn === "tab"
 
 /** Open `text` in the tool that fits it, or on the home screen when none does. */
 function openText(text: string, from: string) {
-  if (!text.trim()) { toast(`Nothing ${from}`); return; }
+  if (!text.trim()) { notice(`Nothing ${from}`); return; }
   if (route(text)) setHome("");
-  else { setHome(text); setCurrent(null); toast("Not recognised; pick a tool for it"); }
+  else { setHome(text); setCurrent(null); notice("Not recognised; pick a tool for it"); }
   show();
 }
 
@@ -202,7 +202,7 @@ export function commands() {
       run: () => {
         void navigator.clipboard.readText().then(
           (text) => openText(text, "on the clipboard"),
-          () => toast("Could not read the clipboard", "error"),
+          () => failure("Could not read the clipboard"),
         );
       },
     },
