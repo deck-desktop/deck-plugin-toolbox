@@ -1,11 +1,15 @@
 # Toolbox for Deck
 
-The small conversions a developer otherwise opens a website for, in a Deck tab or a pane.
+The small conversions a developer otherwise opens a website for, in a Deck tab or a pane. Open it
+from the **+** beside your tabs and choose **Toolbox**.
 
-Open **Toolbox** in the top bar, split a pane into it in Workspaces, or use the palette:
-**Toolbox: JSON**, **Toolbox: Cron** and so on, or **Toolbox: open what is on the clipboard**.
-Select text in any editor and right-click **Open in Toolbox**, or use **Toolbox: open the
-selection**. For text in a terminal, copy it and use the clipboard command.
+![Toolbox](docs/screenshot.png)
+
+The palette has **Toolbox: JSON**, **Toolbox: Cron** and so on for each tool, and **Toolbox: open
+what is on the clipboard**. Select text in any editor and right-click **Open in Toolbox**, or use
+**Toolbox: open the selection**. For text in a terminal, copy it and use the clipboard command.
+These open the Toolbox in a floating window, or in a tab if you choose that in Settings > Layout >
+Where things open.
 
 ## Paste anything
 
@@ -69,14 +73,5 @@ The Toolbox opens on a paste box. Paste a value and the tool that fits opens wit
 - **HTTP status**: what a code means, or search by words ("rate limit", "gateway").
 
 What you type stays while Deck runs, shared by the tab and every Toolbox pane, and is never
-written to disk: people paste tokens and secrets into a toolbox.
-
-## Building
-
-```sh
-node plugins/toolbox/build.mjs
-node plugins/toolbox/toolbox.check.mjs
-```
-
-Each tool's logic is a pure file under `src/tools/`, checked by `toolbox.check.mjs`; the
-components are in `src/views.tsx`.
+written to disk: people paste tokens and secrets into a toolbox. The only thing saved is where
+it opens, in `data\toolbox\settings.json` in Deck's config folder.
